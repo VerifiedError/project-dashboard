@@ -83,7 +83,10 @@ export function ApiConfiguration() {
   const loadConfiguredKeys = async () => {
     setIsLoading(true);
     try {
-      const result = await getApiKeys();
+      // TODO: Get userId from auth context once authentication is implemented
+      // For now, hardcode the admin user ID from seed
+      const userId = "temp-user-id"; // This will be replaced with actual auth
+      const result = await getApiKeys(userId);
       if (result.success && result.keys) {
         const keys = new Set(result.keys.map((key) => key.service));
         setConfiguredKeys(keys);

@@ -48,18 +48,25 @@ export interface ApiKeysListResult {
  * Save or update an API key for a service
  * @param service - The service type (NGROK, VERCEL, NEON, UPSTASH)
  * @param keyValue - The API key value (will be encrypted)
- * @param userId - Optional user ID (for future multi-user support)
+ * @param userId - User ID (required)
  */
 export async function saveApiKey(
   service: ServiceType,
   keyValue: string,
-  userId?: string
+  userId: string
 ): Promise<ApiKeyResult> {
   try {
     if (!keyValue || keyValue.trim().length === 0) {
       return {
         success: false,
         error: "API key cannot be empty",
+      };
+    }
+
+    if (!userId) {
+      return {
+        success: false,
+        error: "User ID is required",
       };
     }
 
@@ -70,7 +77,7 @@ export async function saveApiKey(
     await prisma.apiKey.upsert({
       where: {
         userId_service: {
-          userId: userId || null,
+          userId,
           service,
         },
       },
@@ -80,7 +87,7 @@ export async function saveApiKey(
         updatedAt: new Date(),
       },
       create: {
-        userId: userId || null,
+        userId,
         service,
         keyValue: encryptedKey,
         isActive: true,
@@ -104,17 +111,24 @@ export async function saveApiKey(
 /**
  * Get an API key for a service (decrypted)
  * @param service - The service type
- * @param userId - Optional user ID (for future multi-user support)
+ * @param userId - User ID (required)
  */
 export async function getApiKey(
   service: ServiceType,
-  userId?: string
+  userId: string
 ): Promise<{ success: boolean; keyValue?: string; error?: string }> {
   try {
+    if (!userId) {
+      return {
+        success: false,
+        error: "User ID is required",
+      };
+    }
+
     const apiKey = await prisma.apiKey.findUnique({
       where: {
         userId_service: {
-          userId: userId || null,
+          userId,
           service,
         },
       },
@@ -151,13 +165,20 @@ export async function getApiKey(
 
 /**
  * Get all API keys for a user (without decrypted values)
- * @param userId - Optional user ID (for future multi-user support)
+ * @param userId - User ID (required)
  */
-export async function getApiKeys(userId?: string): Promise<ApiKeysListResult> {
+export async function getApiKeys(userId: string): Promise<ApiKeysListResult> {
   try {
+    if (!userId) {
+      return {
+        success: false,
+        error: "User ID is required",
+      };
+    }
+
     const keys = await prisma.apiKey.findMany({
       where: {
-        userId: userId || null,
+        userId,
       },
       select: {
         service: true,

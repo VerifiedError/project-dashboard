@@ -76,7 +76,9 @@ export function ApiKeyDialog({
     setIsSubmitting(true);
 
     try {
-      const result = await saveApiKey(service, apiKey);
+      // TODO: Get userId from auth context once authentication is implemented
+      const userId = "temp-user-id"; // This will be replaced with actual auth
+      const result = await saveApiKey(service, apiKey, userId);
 
       if (result.success) {
         toast({
@@ -92,7 +94,7 @@ export function ApiKeyDialog({
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -125,7 +127,7 @@ export function ApiKeyDialog({
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "An unexpected error occurred",
