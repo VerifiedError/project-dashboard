@@ -214,19 +214,37 @@ export async function getApiKeys(userId: string): Promise<ApiKeysListResult> {
 /**
  * Delete an API key for a service
  * @param service - The service type
- * @param userId - Optional user ID (for future multi-user support)
+ * @param userId - User ID (required)
  */
 export async function deleteApiKey(
   service: ServiceType,
-  userId?: string
+  userId: string
 ): Promise<ApiKeyResult> {
   try {
+    if (!userId) {
+      return {
+        success: false,
+        error: "User ID is required",
+      };
+    }
+
+    const existingKey = await prisma.apiKey.findFirst({
+      where: {
+        userId,
+        service,
+      },
+    });
+
+    if (!existingKey) {
+      return {
+        success: false,
+        error: "API key not found",
+      };
+    }
+
     await prisma.apiKey.delete({
       where: {
-        userId_service: {
-          userId: userId || null,
-          service,
-        },
+        id: existingKey.id,
       },
     });
 
@@ -247,16 +265,20 @@ export async function deleteApiKey(
 /**
  * Test if an API key is configured for a service
  * @param service - The service type
- * @param userId - Optional user ID (for future multi-user support)
+ * @param userId - User ID (required)
  */
 export async function hasApiKey(
   service: ServiceType,
-  userId?: string
+  userId: string
 ): Promise<boolean> {
   try {
+    if (!userId) {
+      return false;
+    }
+
     const count = await prisma.apiKey.count({
       where: {
-        userId: userId || null,
+        userId,
         service,
         isActive: true,
       },

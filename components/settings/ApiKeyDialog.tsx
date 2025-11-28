@@ -111,7 +111,9 @@ export function ApiKeyDialog({
     setIsDeleting(true);
 
     try {
-      const result = await deleteApiKey(service);
+      // TODO: Get userId from auth context once authentication is implemented
+      const userId = "temp-user-id"; // This will be replaced with actual auth
+      const result = await deleteApiKey(service, userId);
 
       if (result.success) {
         toast({
