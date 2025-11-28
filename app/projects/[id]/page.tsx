@@ -27,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, Edit, FolderKanban, Server, Database, Globe } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 import { formatRelativeTime } from "@/lib/utils/cn";
 
 export default async function ProjectDetailPage({

@@ -24,7 +24,6 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/utils/db";
 import {
   listTunnelSessions,
-  listEndpoints,
   isNgrokConfigured,
   testNgrokConnection,
 } from "@/lib/api/ngrok";
@@ -83,9 +82,6 @@ export async function syncNgrokTunnels(): Promise<NgrokSyncResult> {
 
     // Fetch tunnel sessions from ngrok API
     const sessions = await listTunnelSessions();
-
-    // Fetch endpoints as well for additional data
-    const endpoints = await listEndpoints();
 
     // Update database
     const updatedTunnels = [];

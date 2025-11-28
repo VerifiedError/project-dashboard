@@ -22,7 +22,7 @@ import { getNgrokTunnels, getNgrokStats, checkNgrokStatus } from "@/lib/actions/
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Globe, ExternalLink, RefreshCw, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { Globe, ExternalLink, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { NgrokSyncButton } from "@/components/resources/NgrokSyncButton";
 import { formatRelativeTime } from "@/lib/utils/cn";
