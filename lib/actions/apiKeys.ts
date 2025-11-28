@@ -73,26 +73,35 @@ export async function saveApiKey(
     // Encrypt the API key
     const encryptedKey = encrypt(keyValue.trim());
 
-    // Upsert the API key (insert or update if exists)
-    await prisma.apiKey.upsert({
+    // Check if API key already exists
+    const existingKey = await prisma.apiKey.findFirst({
       where: {
-        userId_service: {
-          userId,
-          service,
-        },
-      },
-      update: {
-        keyValue: encryptedKey,
-        isActive: true,
-        updatedAt: new Date(),
-      },
-      create: {
         userId,
         service,
-        keyValue: encryptedKey,
-        isActive: true,
       },
     });
+
+    if (existingKey) {
+      // Update existing key
+      await prisma.apiKey.update({
+        where: { id: existingKey.id },
+        data: {
+          keyValue: encryptedKey,
+          isActive: true,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      // Create new key
+      await prisma.apiKey.create({
+        data: {
+          userId,
+          service,
+          keyValue: encryptedKey,
+          isActive: true,
+        },
+      });
+    }
 
     // Revalidate pages that might show API key status
     revalidatePath("/settings");
@@ -125,12 +134,10 @@ export async function getApiKey(
       };
     }
 
-    const apiKey = await prisma.apiKey.findUnique({
+    const apiKey = await prisma.apiKey.findFirst({
       where: {
-        userId_service: {
-          userId,
-          service,
-        },
+        userId,
+        service,
       },
     });
 
