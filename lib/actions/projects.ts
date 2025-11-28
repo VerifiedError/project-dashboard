@@ -122,8 +122,12 @@ export async function createProject(data: CreateProjectInput) {
     const validated = createProjectSchema.parse(data);
 
     // Create project
+    // TODO: Get userId from auth context once authentication is implemented
+    const userId = "temp-user-id"; // This will be replaced with actual auth
+
     const project = await prisma.project.create({
       data: {
+        userId,
         name: validated.name,
         description: validated.description || null,
         repository: validated.repository || null,
