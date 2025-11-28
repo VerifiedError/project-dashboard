@@ -16,39 +16,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Key, Database, Globe, TrendingUp, Zap } from "lucide-react";
+import { Settings } from "lucide-react";
+import { ApiConfiguration } from "@/components/settings/ApiConfiguration";
 
 export default function SettingsPage() {
-  const services = [
-    {
-      name: "ngrok",
-      icon: Globe,
-      color: "text-blue-600",
-      status: "Not configured",
-      description: "Tunnel monitoring and management",
-    },
-    {
-      name: "Vercel",
-      icon: TrendingUp,
-      color: "text-black",
-      status: "Not configured",
-      description: "Deployment tracking",
-    },
-    {
-      name: "Neon",
-      icon: Database,
-      color: "text-green-600",
-      status: "Connected",
-      description: "PostgreSQL database",
-    },
-    {
-      name: "Upstash",
-      icon: Zap,
-      color: "text-purple-600",
-      status: "Not configured",
-      description: "Redis & Kafka",
-    },
-  ];
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-5xl">
@@ -63,43 +34,9 @@ export default function SettingsPage() {
       </div>
 
       {/* API Keys Section */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            <CardTitle>API Configuration</CardTitle>
-          </div>
-          <CardDescription>
-            Configure API keys for external services
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {services.map((service) => {
-            const Icon = service.icon;
-            return (
-              <div
-                key={service.name}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <Icon className={`h-8 w-8 ${service.color}`} />
-                  <div>
-                    <h3 className="font-semibold">{service.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {service.description}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant={service.status === "Connected" ? "default" : "outline"}
-                >
-                  {service.status}
-                </Badge>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <div className="mb-6">
+        <ApiConfiguration />
+      </div>
 
       {/* System Settings */}
       <Card>

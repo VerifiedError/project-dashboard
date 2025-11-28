@@ -20,9 +20,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Users - Authentication and user management
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // Hashed password
+  email     String?  @unique
+  name      String?
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projects  Project[]
+  apiKeys   ApiKey[]
+  changelog ChangelogEntry[]
+
+  @@index([username])
+  @@index([email])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
 // Projects - User's custom projects
 model Project {
   id          String   @id @default(cuid())
+  userId      String   // Owner of the project
   name        String
   description String?
   repository  String?  // GitHub/GitLab URL
@@ -32,12 +59,14 @@ model Project {
   updatedAt   DateTime @updatedAt
 
   // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ngrokTunnels    NgrokTunnel[]
   vercelProjects  VercelProject[]
   neonDatabases   NeonDatabase[]
   upstashDatabases UpstashDatabase[]
   changelog       ChangelogEntry[]
 
+  @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
@@ -184,9 +213,12 @@ model ChangelogEntry {
   createdAt   DateTime @default(now())
 
   // Relations
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   projectId   String?
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
   @@index([category])
   @@index([createdAt(sort: Desc)])
 }
@@ -213,14 +245,20 @@ enum ChangeSeverity {
 // API Keys Storage (encrypted)
 model ApiKey {
   id          String   @id @default(cuid())
-  service     ServiceType @unique
+  userId      String   // Owner of the API key
+  service     ServiceType
   keyValue    String   // Encrypted
   isActive    Boolean  @default(true)
   lastUsedAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, service]) // Each user can have one key per service
   @@index([service])
+  @@index([userId])
 }
 
 enum ServiceType {

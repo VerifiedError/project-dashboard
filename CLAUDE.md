@@ -88,22 +88,61 @@
 ---
 
 ## Table of Contents
-1. [Project Overview](#project-overview)
-2. [Technical Architecture](#technical-architecture)
-3. [Technology Stack](#technology-stack)
-4. [API Integrations](#api-integrations)
-5. [Database Schema](#database-schema)
-6. [Code Reference System](#code-reference-system)
-7. [Changelog System](#changelog-system)
-8. [Mobile-First UI/UX Design](#mobile-first-uiux-design)
-9. [Folder Structure](#folder-structure)
-10. [Development Phases](#development-phases)
-11. [Security Considerations](#security-considerations)
-12. [Deployment Strategy](#deployment-strategy)
+1. [Versioning Workflow](#versioning-workflow)
+2. [Project Overview](#project-overview)
+3. [Technical Architecture](#technical-architecture)
+4. [Technology Stack](#technology-stack)
+5. [API Integrations](#api-integrations)
+6. [Database Schema](#database-schema)
+7. [Code Reference System](#code-reference-system)
+8. [Changelog System](#changelog-system)
+9. [Mobile-First UI/UX Design](#mobile-first-uiux-design)
+10. [Folder Structure](#folder-structure)
+11. [Development Phases](#development-phases)
+12. [Security Considerations](#security-considerations)
+13. [Deployment Strategy](#deployment-strategy)
 
 ---
 
-## 1. Project Overview
+## 1. Versioning Workflow
+
+### Version Update Protocol
+**IMPORTANT**: Every time you make an update to this project, you MUST follow this workflow:
+
+1. **Update package.json version**
+   - Increment the version number following semantic versioning (MAJOR.MINOR.PATCH)
+   - Location: `package.json` line 3
+
+2. **Update this CLAUDE.md file**
+   - Update the "Current Stats" section with new file counts, changelog entries, etc.
+   - Add completed phases to the "Completed Phases" section
+   - Document new features or changes
+
+3. **Create a changelog entry**
+   - Add a new entry to the database via seed script or API
+   - Use the next CHG-XXX number in sequence
+   - Include all file changes with their FILE-REF numbers
+   - Document the purpose and impact of changes
+
+4. **Update the global version display**
+   - The VersionBadge component (COMP-083) automatically reads from package.json
+   - No manual update needed - it will show the new version immediately
+
+### Version Display
+The current version is always visible in the header (COMP-060) via the VersionBadge component (COMP-083), which reads directly from package.json as the single source of truth.
+
+### Semantic Versioning Rules
+- **MAJOR** (X.0.0): Breaking changes, major new features, architecture changes
+- **MINOR** (0.X.0): New features, significant improvements, new integrations
+- **PATCH** (0.0.X): Bug fixes, minor improvements, documentation updates
+
+### Current Version: 0.2.0
+- **0.1.0**: Initial setup and Phase 1-5 completion
+- **0.2.0**: User authentication system, API key management, version display
+
+---
+
+## 2. Project Overview
 
 ### Core Features
 - **Project Management**: Create, view, edit, and delete projects

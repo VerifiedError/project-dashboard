@@ -11,7 +11,8 @@
  * - 2025-11-28 - Initial seed file with Phase 1 changelog entries (CHG-002)
  */
 
-import { PrismaClient, ChangeCategory, ChangeSeverity } from "@prisma/client";
+import { PrismaClient, ChangeCategory, ChangeSeverity, UserRole } from "@prisma/client";
+import { hashPassword } from "../lib/utils/auth";
 
 const prisma = new PrismaClient();
 
@@ -21,6 +22,21 @@ async function main() {
   // Clear existing data (be careful in production!)
   await prisma.changelogEntry.deleteMany();
   await prisma.systemSetting.deleteMany();
+  await prisma.user.deleteMany();
+
+  console.log("👤 Creating initial user account...");
+
+  // Create user: addison
+  const user = await prisma.user.create({
+    data: {
+      username: "addison",
+      password: hashPassword("ac783dac783d"),
+      email: "addison@dashboard.local",
+      name: "Addison Mikkelson",
+      role: UserRole.ADMIN,
+      isActive: true,
+    },
+  });
 
   console.log("📝 Creating initial changelog entries...");
 
@@ -76,7 +92,7 @@ async function main() {
   await prisma.systemSetting.create({
     data: {
       key: "app_version",
-      value: "0.1.0",
+      value: "0.2.0",
       description: "Current application version",
     },
   });
@@ -115,6 +131,7 @@ async function main() {
 
   console.log("✅ Seed completed successfully!");
   console.log("📊 Summary:");
+  console.log(`  - 1 user created (${user.username})`);
   console.log("  - 2 changelog entries created");
   console.log("  - 5 system settings created");
 }

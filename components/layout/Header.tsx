@@ -2,12 +2,13 @@
  * FILE-REF: COMP-060-20251128
  *
  * @file Header.tsx
- * @description Main header component with navigation
+ * @description Main header component with navigation and version badge
  * @category Component
  * @created 2025-11-28
  * @modified 2025-11-28
  *
  * @changelog
+ * - 2025-11-28 - Added version badge display (CHG-009)
  * - 2025-11-28 - Initial header component (CHG-004)
  *
  * @dependencies
@@ -15,6 +16,7 @@
  * - lucide-react
  *
  * @see Related files:
+ * - COMP-083 (VersionBadge.tsx)
  * - COMP-061 (MobileNav.tsx)
  * - PAGE-000 (layout.tsx)
  */
@@ -27,6 +29,7 @@ import { Menu, Activity, FolderKanban, Server, List, Settings } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { useState } from "react";
+import { VersionBadge } from "@/components/layout/VersionBadge";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Activity },
@@ -88,9 +91,9 @@ export function Header() {
           <span className="sr-only">Toggle menu</span>
         </Button>
 
-        {/* Right side actions (for future use) */}
+        {/* Right side actions */}
         <div className="hidden md:flex md:items-center md:gap-2">
-          {/* Placeholder for user menu, notifications, etc. */}
+          <VersionBadge />
         </div>
       </div>
 
