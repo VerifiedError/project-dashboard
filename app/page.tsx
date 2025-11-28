@@ -52,7 +52,7 @@ export default async function Home() {
   ]);
 
   const stats = statsResult.success ? statsResult.stats : null;
-  const recentChanges = changelogResult.success ? changelogResult.entries : [];
+  const recentChanges = (changelogResult.success ? changelogResult.entries : []) ?? [];
   const ngrokStats = ngrokStatsResult.success ? ngrokStatsResult.stats : { total: 0, active: 0, inactive: 0 };
 
   return (

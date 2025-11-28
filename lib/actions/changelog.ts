@@ -95,7 +95,7 @@ export async function getChangelogEntries(filters?: {
   offset?: number;
 }) {
   try {
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (filters?.category) where.category = filters.category;
     if (filters?.severity) where.severity = filters.severity;
