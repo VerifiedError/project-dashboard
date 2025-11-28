@@ -1,0 +1,242 @@
+/**
+ * FILE-REF: DB-001-20251128
+ *
+ * @file schema.prisma
+ * @description Database schema for DevOps Resource Dashboard
+ * @category Database
+ * @created 2025-11-28
+ * @modified 2025-11-28
+ *
+ * @changelog
+ * - 2025-11-28 - Initial database schema with all models (CHG-001)
+ */
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Projects - User's custom projects
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  repository  String?  // GitHub/GitLab URL
+  status      ProjectStatus @default(ACTIVE)
+  tags        String[] // Array of tags for categorization
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  ngrokTunnels    NgrokTunnel[]
+  vercelProjects  VercelProject[]
+  neonDatabases   NeonDatabase[]
+  upstashDatabases UpstashDatabase[]
+  changelog       ChangelogEntry[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  PAUSED
+}
+
+// ngrok Tunnels
+model NgrokTunnel {
+  id              String   @id @default(cuid())
+  ngrokId         String   @unique // ngrok's internal ID
+  publicUrl       String
+  protocol        String   // http, https, tcp, tls
+  forwardingAddr  String   // localhost:3000
+  region          String?
+  connectionCount Int      @default(0)
+  bytesTransferred BigInt  @default(0)
+  status          TunnelStatus @default(ACTIVE)
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([lastSyncedAt])
+}
+
+enum TunnelStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+// Vercel Projects
+model VercelProject {
+  id              String   @id @default(cuid())
+  vercelId        String   @unique // Vercel's project ID
+  name            String
+  framework       String?  // nextjs, react, vue, etc.
+  productionUrl   String?
+  gitProvider     String?  // github, gitlab, bitbucket
+  gitRepo         String?
+  latestDeployment Json?   // Store latest deployment info
+  buildStatus     BuildStatus @default(READY)
+  lastDeployedAt  DateTime?
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([buildStatus])
+  @@index([lastSyncedAt])
+}
+
+enum BuildStatus {
+  READY
+  BUILDING
+  ERROR
+  QUEUED
+  CANCELED
+}
+
+// Neon Databases
+model NeonDatabase {
+  id              String   @id @default(cuid())
+  neonProjectId   String   @unique // Neon's project ID
+  projectName     String
+  databaseName    String
+  region          String
+  postgresVersion String
+  connectionUri   String   // Encrypted
+  storageUsageGB  Float    @default(0)
+  computeHours    Float    @default(0)
+  branchCount     Int      @default(1)
+  status          DatabaseStatus @default(ACTIVE)
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([lastSyncedAt])
+}
+
+enum DatabaseStatus {
+  ACTIVE
+  SUSPENDED
+  ERROR
+}
+
+// Upstash Databases
+model UpstashDatabase {
+  id              String   @id @default(cuid())
+  upstashId       String   @unique // Upstash's database/cluster ID
+  name            String
+  type            UpstashType // REDIS or KAFKA
+  region          String
+  endpoint        String
+  port            Int
+  tlsEnabled      Boolean  @default(true)
+  totalCommands   BigInt   @default(0)
+  storageUsedMB   Float    @default(0)
+  status          DatabaseStatus @default(ACTIVE)
+  lastSyncedAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([status])
+  @@index([lastSyncedAt])
+}
+
+enum UpstashType {
+  REDIS
+  KAFKA
+}
+
+// Changelog Entries
+model ChangelogEntry {
+  id          String   @id @default(cuid())
+  refNumber   String   @unique // e.g., "CHG-001", "CHG-002"
+  title       String
+  description String
+  category    ChangeCategory
+  severity    ChangeSeverity @default(MINOR)
+  fileChanges Json?    // Array of files changed with their ref numbers
+  author      String   @default("System")
+  createdAt   DateTime @default(now())
+
+  // Relations
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum ChangeCategory {
+  FEATURE
+  BUGFIX
+  IMPROVEMENT
+  REFACTOR
+  DOCUMENTATION
+  CONFIGURATION
+  DATABASE
+  API
+  UI
+}
+
+enum ChangeSeverity {
+  CRITICAL  // Breaking changes, major features
+  MAJOR     // New features, significant improvements
+  MINOR     // Small improvements, bug fixes
+  PATCH     // Tiny fixes, typos
+}
+
+// API Keys Storage (encrypted)
+model ApiKey {
+  id          String   @id @default(cuid())
+  service     ServiceType @unique
+  keyValue    String   // Encrypted
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([service])
+}
+
+enum ServiceType {
+  NGROK
+  VERCEL
+  NEON
+  UPSTASH
+}
+
+// System Settings
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
