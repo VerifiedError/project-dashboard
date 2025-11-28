@@ -32,7 +32,7 @@ export default async function ProjectsPage() {
     getProjectStats(),
   ]);
 
-  const projects = projectsResult.success ? projectsResult.projects : [];
+  const projects = (projectsResult.success ? projectsResult.projects : []) ?? [];
   const stats = statsResult.success ? statsResult.stats : null;
 
   return (

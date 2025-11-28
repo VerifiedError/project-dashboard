@@ -34,7 +34,7 @@ export default async function NgrokPage() {
     checkNgrokStatus(),
   ]);
 
-  const tunnels = tunnelsResult.success ? tunnelsResult.tunnels : [];
+  const tunnels = (tunnelsResult.success ? tunnelsResult.tunnels : []) ?? [];
   const stats = statsResult.success ? statsResult.stats : { total: 0, active: 0, inactive: 0 };
   const status = statusResult.success ? statusResult : { configured: false, connected: false };
 
