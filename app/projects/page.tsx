@@ -101,7 +101,7 @@ export default async function ProjectsPage() {
       )}
 
       {/* Projects Grid */}
-      {projects.length === 0 ? (
+      {(projects ?? []).length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>No projects yet</CardTitle>
@@ -120,7 +120,7 @@ export default async function ProjectsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
+          {(projects ?? []).map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>
