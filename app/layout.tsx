@@ -9,18 +9,25 @@
  *
  * @changelog
  * - 2025-11-28 - Initial root layout with metadata (CHG-001)
+ * - 2025-11-28 - Added Header and Toaster components (CHG-004)
  *
  * @dependencies
  * - next
  * - Inter font from next/font/google
+ * - COMP-060 (Header.tsx)
+ * - COMP-008 (Toaster.tsx)
  *
  * @see Related files:
  * - STYLE-001 (globals.css)
+ * - COMP-060 (Header.tsx)
+ * - COMP-008 (Toaster.tsx)
  */
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/layout/Header";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,7 +51,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {children}
+        <div className="relative flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1">{children}</main>
+        </div>
+        <Toaster />
       </body>
     </html>
   );
