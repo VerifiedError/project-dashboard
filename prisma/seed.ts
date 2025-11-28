@@ -26,9 +26,11 @@ async function main() {
 
   console.log("👤 Creating initial user account...");
 
-  // Create user: addison
+  // Create user: addison with fixed ID for development
+  // Using "temp-user-id" to match the hardcoded userId in API key functions
   const user = await prisma.user.create({
     data: {
+      id: "temp-user-id",
       username: "addison",
       password: hashPassword("ac783dac783d"),
       email: "addison@dashboard.local",
