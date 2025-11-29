@@ -26,10 +26,12 @@ import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 
 export default async function ChangelogPage() {
   const { success, entries, total } = await getChangelogEntries({ limit: 500 });
-  const { timezone } = await getTimezone();
+  const timezoneResult = await getTimezone();
 
   // Ensure entries is always an array, even during build time
   const safeEntries = Array.isArray(entries) ? entries : [];
+  // Ensure timezone is always defined with a fallback
+  const timezone = timezoneResult.timezone || "America/Chicago";
 
   if (!success) {
     return (
