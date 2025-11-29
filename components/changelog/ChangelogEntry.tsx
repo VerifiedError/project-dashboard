@@ -24,9 +24,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User, FileText } from "lucide-react";
 import type { ChangelogEntry as ChangelogEntryType } from "@prisma/client";
+import { formatChangelogDate, DEFAULT_TIMEZONE, type TimezoneValue } from "@/lib/utils/timezone";
 
 interface ChangelogEntryProps {
   entry: ChangelogEntryType;
+  timezone?: TimezoneValue;
 }
 
 // Category colors
@@ -50,20 +52,14 @@ const severityColors = {
   PATCH: "bg-gray-600 text-white",
 } as const;
 
-export function ChangelogEntry({ entry }: ChangelogEntryProps) {
+export function ChangelogEntry({ entry, timezone = DEFAULT_TIMEZONE }: ChangelogEntryProps) {
   // Parse file changes if they exist
   const fileChanges = entry.fileChanges
     ? (entry.fileChanges as { ref: string; path: string }[])
     : [];
 
-  // Format date
-  const formattedDate = new Date(entry.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  // Format date with timezone
+  const dateInfo = formatChangelogDate(entry.createdAt, timezone);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -132,7 +128,9 @@ export function ChangelogEntry({ entry }: ChangelogEntryProps) {
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
-            <time dateTime={entry.createdAt.toISOString()}>{formattedDate}</time>
+            <time dateTime={entry.createdAt.toISOString()} title={dateInfo.full}>
+              {dateInfo.relative} ({dateInfo.timezone})
+            </time>
           </div>
         </div>
       </CardContent>

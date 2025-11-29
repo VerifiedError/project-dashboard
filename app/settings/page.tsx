@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Settings } from "lucide-react";
 import { ApiConfiguration } from "@/components/settings/ApiConfiguration";
+import { TimezoneSetting } from "@/components/settings/TimezoneSetting";
 
 export default function SettingsPage() {
 
@@ -36,6 +37,11 @@ export default function SettingsPage() {
       {/* API Keys Section */}
       <div className="mb-6">
         <ApiConfiguration />
+      </div>
+
+      {/* Timezone Setting */}
+      <div className="mb-6">
+        <TimezoneSetting />
       </div>
 
       {/* System Settings */}

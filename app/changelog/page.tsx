@@ -20,11 +20,13 @@
  */
 
 import { getChangelogEntries } from "@/lib/actions/changelog";
+import { getTimezone } from "@/lib/actions/settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 
 export default async function ChangelogPage() {
   const { success, entries, total } = await getChangelogEntries({ limit: 500 });
+  const { timezone } = await getTimezone();
 
   if (!success || !entries) {
     return (
@@ -63,7 +65,7 @@ export default async function ChangelogPage() {
       ) : (
         <div className="space-y-4">
           {entries.map((entry) => (
-            <ChangelogEntry key={entry.id} entry={entry} />
+            <ChangelogEntry key={entry.id} entry={entry} timezone={timezone} />
           ))}
         </div>
       )}

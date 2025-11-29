@@ -94,8 +94,16 @@ async function main() {
   await prisma.systemSetting.create({
     data: {
       key: "app_version",
-      value: "0.2.0",
+      value: "0.3.0",
       description: "Current application version",
+    },
+  });
+
+  await prisma.systemSetting.create({
+    data: {
+      key: "user_timezone",
+      value: "America/Chicago",
+      description: "User's preferred timezone for displaying dates and times (CST - Sioux Falls, SD)",
     },
   });
 
