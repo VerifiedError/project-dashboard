@@ -28,7 +28,10 @@ export default async function ChangelogPage() {
   const { success, entries, total } = await getChangelogEntries({ limit: 500 });
   const { timezone } = await getTimezone();
 
-  if (!success || !entries) {
+  // Ensure entries is always an array, even during build time
+  const safeEntries = Array.isArray(entries) ? entries : [];
+
+  if (!success) {
     return (
       <div className="container mx-auto p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-6">Changelog</h1>
@@ -56,7 +59,7 @@ export default async function ChangelogPage() {
         </p>
       </div>
 
-      {entries.length === 0 ? (
+      {safeEntries.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-muted-foreground">No changelog entries yet</p>
@@ -64,7 +67,7 @@ export default async function ChangelogPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {entries.map((entry) => (
+          {safeEntries.map((entry) => (
             <ChangelogEntry key={entry.id} entry={entry} timezone={timezone} />
           ))}
         </div>
