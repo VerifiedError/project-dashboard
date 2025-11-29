@@ -26,7 +26,7 @@ import {
   getVercelProject,
   listVercelDeployments,
 } from "@/lib/api/vercel";
-import { BuildStatus } from "@prisma/client";
+import { BuildStatus, Prisma } from "@prisma/client";
 import { getCurrentUserId } from "@/lib/utils/session";
 
 interface SyncResult {
@@ -116,7 +116,7 @@ export async function syncVercelProjects(): Promise<SyncResult> {
                 ready: latestDeployment.ready,
                 meta: latestDeployment.meta,
               }
-            : null,
+            : Prisma.JsonNull,
           productionUrl: latestDeployment?.target === "production" ? latestDeployment.url : null,
           lastDeployedAt: latestDeployment ? new Date(latestDeployment.created) : null,
           lastSyncedAt: new Date(),
@@ -140,7 +140,7 @@ export async function syncVercelProjects(): Promise<SyncResult> {
                 ready: latestDeployment.ready,
                 meta: latestDeployment.meta,
               }
-            : null,
+            : Prisma.JsonNull,
           productionUrl: latestDeployment?.target === "production" ? latestDeployment.url : null,
           lastDeployedAt: latestDeployment ? new Date(latestDeployment.created) : null,
           lastSyncedAt: new Date(),
