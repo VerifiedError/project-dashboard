@@ -35,8 +35,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { saveApiKey, deleteApiKey } from "@/lib/actions/apiKeys";
-import { Loader2, Eye, EyeOff, Trash2 } from "lucide-react";
+import { saveApiKey, deleteApiKey, getApiKey } from "@/lib/actions/apiKeys";
+import { Loader2, Eye, EyeOff, Trash2, Download } from "lucide-react";
 
 interface ApiKeyDialogProps {
   isOpen: boolean;
@@ -59,6 +59,7 @@ export function ApiKeyDialog({
   const [showKey, setShowKey] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingKey, setIsLoadingKey] = useState(false);
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -140,6 +141,41 @@ export function ApiKeyDialog({
     }
   };
 
+  const handleLoadKey = async () => {
+    if (!service) return;
+
+    setIsLoadingKey(true);
+
+    try {
+      // TODO: Get userId from auth context once authentication is implemented
+      const userId = "temp-user-id"; // This will be replaced with actual auth
+      const result = await getApiKey(service, userId);
+
+      if (result.success && result.keyValue) {
+        setApiKey(result.keyValue);
+        setShowKey(true);
+        toast({
+          title: "Success",
+          description: `${serviceName} API key loaded`,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to load API key",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingKey(false);
+    }
+  };
+
   const handleClose = () => {
     setApiKey("");
     setShowKey(false);
@@ -190,35 +226,52 @@ export function ApiKeyDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          {hasExistingKey && (
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <div className="flex gap-2 flex-1">
+            {hasExistingKey && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleLoadKey}
+                disabled={isSubmitting || isDeleting || isLoadingKey}
+                className="flex-1 sm:flex-none"
+              >
+                {isLoadingKey && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Download className="mr-2 h-4 w-4" />
+                View Key
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {hasExistingKey && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isSubmitting || isDeleting || isLoadingKey}
+              >
+                {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            )}
             <Button
               type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isSubmitting || isDeleting}
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting || isDeleting || isLoadingKey}
             >
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Cancel
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSubmitting || isDeleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isSubmitting || isDeleting || !apiKey.trim()}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {hasExistingKey ? "Update" : "Save"}
-          </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={isSubmitting || isDeleting || isLoadingKey || !apiKey.trim()}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {hasExistingKey ? "Update" : "Save"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
