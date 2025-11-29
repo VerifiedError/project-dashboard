@@ -57,12 +57,14 @@
 - **Changelog**: CHG-006
 
 ### 📊 Current Stats
-- **Total Files Created**: 49+
-- **Changelog Entries**: 7 (CHG-001 through CHG-007)
-- **Git Commits**: 4
-- **Lines of Code**: ~4,200+
+- **Total Files Created**: 52+ (including placeholder pages)
+- **Changelog Entries**: 10 (CHG-001 through CHG-010) - ✅ Complete history seeded
+- **Git Commits**: 7+
+- **Lines of Code**: ~4,500+
 - **Database Tables**: 8 models (fully seeded)
 - **API Integrations**: 1/4 complete (ngrok ✅)
+- **Production Status**: ✅ Deployed to Vercel (dashboard.amikkelson.io)
+- **Known Issues**: ENCRYPTION_KEY environment variable fix pending in Vercel
 
 ### 🚀 Next Phases
 
@@ -101,6 +103,7 @@
 11. [Development Phases](#development-phases)
 12. [Security Considerations](#security-considerations)
 13. [Deployment Strategy](#deployment-strategy)
+14. [Troubleshooting & Known Issues](#troubleshooting--known-issues)
 
 ---
 
@@ -136,9 +139,12 @@ The current version is always visible in the header (COMP-060) via the VersionBa
 - **MINOR** (0.X.0): New features, significant improvements, new integrations
 - **PATCH** (0.0.X): Bug fixes, minor improvements, documentation updates
 
-### Current Version: 0.2.0
+### Current Version: 0.3.2
 - **0.1.0**: Initial setup and Phase 1-5 completion
 - **0.2.0**: User authentication system, API key management, version display
+- **0.3.0**: Version badge component, timezone configuration
+- **0.3.1**: Placeholder pages for Vercel, Neon, Upstash resources (404 fix)
+- **0.3.2**: ENCRYPTION_KEY diagnostic and production environment fix
 
 ---
 
@@ -1479,7 +1485,7 @@ project-dashboard/
 
 ---
 
-## 11. Security Considerations
+## 12. Security Considerations
 
 ### API Key Security
 1. **Storage**
@@ -1526,7 +1532,7 @@ project-dashboard/
 
 ---
 
-## 12. Deployment Strategy
+## 13. Deployment Strategy
 
 ### Environment Setup
 
@@ -1569,6 +1575,158 @@ git push origin main
 - Vercel Analytics (built-in)
 - Error tracking (Sentry - future phase)
 - Uptime monitoring (BetterStack - future phase)
+
+---
+
+## 14. Troubleshooting & Known Issues
+
+### Issue 1: API Keys Showing "Not Configured" in Production (RESOLVED)
+
+**Date Identified**: November 29, 2025
+**Status**: ✅ Fix Identified - Pending User Action
+
+#### Symptoms
+- API keys saved successfully in production database (confirmed via diagnostic)
+- Settings page shows "Not configured" for all API services
+- "View API Key" button fails with decryption error
+- Debug report shows: `"Failed to decrypt data"` error
+
+#### Root Cause
+The `ENCRYPTION_KEY` environment variable was missing from Vercel's production environment variables. When users entered API keys through the settings UI:
+
+1. Keys were encrypted using a local `ENCRYPTION_KEY`
+2. Keys saved to production database successfully
+3. When production tried to retrieve keys, it couldn't decrypt them because the `ENCRYPTION_KEY` wasn't available in Vercel
+
+#### Diagnostic Process
+Created diagnostic script (`scripts/check-api-keys.ts`) to:
+- Query production database for saved API keys
+- Verify encrypted data exists
+- Check local ENCRYPTION_KEY status
+
+**Findings**:
+```
+📊 Found 3 API key(s) in database:
+1. Service: NEON (created: 2025-11-29T02:12:31.962Z)
+2. Service: VERCEL (created: 2025-11-29T02:12:11.291Z)
+3. Service: NGROK (created: 2025-11-29T02:11:15.394Z)
+
+✅ Keys ARE in database
+❌ ENCRYPTION_KEY missing from Vercel environment
+```
+
+#### Solution
+Add `ENCRYPTION_KEY` to Vercel environment variables:
+
+1. Navigate to Vercel Dashboard → project-dashboard → Settings → Environment Variables
+2. Add new variable:
+   - **Name**: `ENCRYPTION_KEY`
+   - **Value**: `3d71b85398e1f8f95652f6da7bb1268ef5557676f661e4be8fef43455f299818`
+   - **Environments**: Production, Preview, Development (all three)
+3. Save and wait for automatic redeployment (1-2 minutes)
+4. Verify at https://dashboard.amikkelson.io/settings
+
+#### Prevention
+- Added `ENCRYPTION_KEY` to `.env.example` template
+- Updated deployment checklist to verify all environment variables
+- Added diagnostic script for future troubleshooting (can be recreated if needed)
+
+---
+
+### Issue 2: 404 Errors on Resource Pages (RESOLVED)
+
+**Date Identified**: November 29, 2025
+**Status**: ✅ Fixed in v0.3.1
+
+#### Symptoms
+Console errors:
+```
+upstash?_rsc=h1jml:1  Failed to load resource: 404
+vercel?_rsc=h1jml:1   Failed to load resource: 404
+neon?_rsc=h1jml:1     Failed to load resource: 404
+```
+
+#### Root Cause
+Resources overview page (`/app/resources/page.tsx`) linked to resource detail pages that didn't exist yet:
+- `/resources/vercel` → 404
+- `/resources/neon` → 404
+- `/resources/upstash` → 404
+
+#### Solution
+Created placeholder "Coming Soon" pages:
+- `app/resources/vercel/page.tsx` (PAGE-008-20251129)
+- `app/resources/neon/page.tsx` (PAGE-009-20251129)
+- `app/resources/upstash/page.tsx` (PAGE-010-20251129)
+
+Each page includes:
+- Service-specific branding and icons
+- "Coming Soon" message
+- Links back to resources and settings
+- Consistent layout with other pages
+
+**Git Commit**: `12e0b95 - Add placeholder pages for Vercel, Neon, and Upstash resources`
+
+---
+
+### Common Diagnostic Commands
+
+#### Check Production Database for API Keys
+```bash
+npx tsx scripts/check-api-keys.ts
+```
+
+#### Verify Encryption Key Locally
+```bash
+grep ENCRYPTION_KEY .env.local
+```
+
+#### Test Production Settings Page
+```bash
+curl -s https://dashboard.amikkelson.io/settings | grep "Not configured"
+```
+
+#### Check Vercel Deployment Logs
+```bash
+vercel logs production --app project-dashboard
+```
+
+#### Verify Environment Variables in Vercel
+Via Vercel Dashboard:
+1. Go to project-dashboard → Settings → Environment Variables
+2. Confirm presence of:
+   - `DATABASE_URL`
+   - `ENCRYPTION_KEY`
+   - `NGROK_API_KEY`
+   - `VERCEL_API_TOKEN`
+   - `NEON_API_KEY`
+   - `UPSTASH_API_KEY`
+
+---
+
+### Debugging API Key Issues
+
+If API keys show "Not configured":
+
+1. **Check if keys exist in database**:
+   - Create diagnostic script (see Issue 1 above)
+   - Run: `npx tsx scripts/check-api-keys.ts`
+   - Should show number of keys and their services
+
+2. **Verify ENCRYPTION_KEY**:
+   - Local: `grep ENCRYPTION_KEY .env.local`
+   - Vercel: Check dashboard environment variables
+   - Must be identical in both places
+
+3. **Check for encryption errors**:
+   - Open browser dev tools → Console
+   - Navigate to Settings page
+   - Look for "Failed to decrypt data" errors
+
+4. **Verify API key save process**:
+   - Open Network tab in browser
+   - Enter an API key and click Save
+   - Check for 200 response
+   - Check database to confirm save
 
 ---
 
