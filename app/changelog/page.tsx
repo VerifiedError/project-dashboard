@@ -24,6 +24,9 @@ import { getTimezone } from "@/lib/actions/settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 
+// Force dynamic rendering - don't try to statically generate at build time
+export const dynamic = 'force-dynamic';
+
 export default async function ChangelogPage() {
   const { success, entries, total } = await getChangelogEntries({ limit: 500 });
   const timezoneResult = await getTimezone();
