@@ -121,7 +121,7 @@ export async function getChangelogEntries(filters?: {
     return { success: true, entries, total };
   } catch (error) {
     console.error("Failed to fetch changelog entries:", error);
-    return { success: false, error: "Failed to fetch changelog entries" };
+    return { success: false, error: "Failed to fetch changelog entries", entries: [], total: 0 };
   }
 }
 
