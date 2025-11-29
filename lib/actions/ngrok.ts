@@ -24,10 +24,25 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/utils/db";
 import {
   listTunnelSessions,
-  isNgrokConfigured,
+  isNgrokKeyValid,
   testNgrokConnection,
 } from "@/lib/api/ngrok";
-import { TunnelStatus } from "@prisma/client";
+import { getApiKey } from "@/lib/actions/apiKeys";
+import { ServiceType, TunnelStatus } from "@prisma/client";
+
+/**
+ * Helper function to get ngrok API key from database
+ */
+async function getNgrokApiKey(): Promise<string | null> {
+  const userId = "temp-user-id"; // TODO: Get from auth context
+  const result = await getApiKey(ServiceType.NGROK, userId);
+
+  if (result.success && result.keyValue) {
+    return result.keyValue;
+  }
+
+  return null;
+}
 
 export interface NgrokSyncResult {
   success: boolean;
@@ -61,8 +76,10 @@ export interface NgrokTunnelsResult {
  */
 export async function syncNgrokTunnels(): Promise<NgrokSyncResult> {
   try {
-    // Check if ngrok is configured
-    if (!isNgrokConfigured()) {
+    // Get API key from database
+    const apiKey = await getNgrokApiKey();
+
+    if (!isNgrokKeyValid(apiKey)) {
       return {
         success: false,
         tunnelsCount: 0,
@@ -71,7 +88,7 @@ export async function syncNgrokTunnels(): Promise<NgrokSyncResult> {
     }
 
     // Test connection
-    const connectionTest = await testNgrokConnection();
+    const connectionTest = await testNgrokConnection(apiKey!);
     if (!connectionTest.success) {
       return {
         success: false,
@@ -81,7 +98,7 @@ export async function syncNgrokTunnels(): Promise<NgrokSyncResult> {
     }
 
     // Fetch tunnel sessions from ngrok API
-    const sessions = await listTunnelSessions();
+    const sessions = await listTunnelSessions(apiKey!);
 
     // Update database
     const updatedTunnels = [];
@@ -255,9 +272,10 @@ export async function deleteNgrokTunnel(tunnelId: string) {
  */
 export async function checkNgrokStatus() {
   try {
-    const configured = isNgrokConfigured();
+    // Get API key from database
+    const apiKey = await getNgrokApiKey();
 
-    if (!configured) {
+    if (!isNgrokKeyValid(apiKey)) {
       return {
         success: true,
         configured: false,
@@ -265,7 +283,7 @@ export async function checkNgrokStatus() {
       };
     }
 
-    const connectionTest = await testNgrokConnection();
+    const connectionTest = await testNgrokConnection(apiKey!);
 
     return {
       success: true,

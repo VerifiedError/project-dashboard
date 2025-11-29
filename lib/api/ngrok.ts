@@ -23,7 +23,6 @@
  */
 
 const NGROK_API_BASE = "https://api.ngrok.com";
-const API_KEY = process.env.NGROK_API_KEY;
 
 export interface NgrokTunnel {
   id: string;
@@ -124,13 +123,13 @@ export interface NgrokEndpoint {
 /**
  * Fetch headers with authentication
  */
-function getHeaders(): HeadersInit {
-  if (!API_KEY) {
-    throw new Error("NGROK_API_KEY environment variable is not set");
+function getHeaders(apiKey: string): HeadersInit {
+  if (!apiKey) {
+    throw new Error("ngrok API key is required");
   }
 
   return {
-    Authorization: `Bearer ${API_KEY}`,
+    Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
     "Ngrok-Version": "2",
   };
@@ -139,10 +138,10 @@ function getHeaders(): HeadersInit {
 /**
  * List all active tunnel sessions
  */
-export async function listTunnelSessions(): Promise<NgrokTunnelSession[]> {
+export async function listTunnelSessions(apiKey: string): Promise<NgrokTunnelSession[]> {
   try {
     const response = await fetch(`${NGROK_API_BASE}/tunnel_sessions`, {
-      headers: getHeaders(),
+      headers: getHeaders(apiKey),
       next: { revalidate: 30 }, // Cache for 30 seconds
     });
 
@@ -161,10 +160,10 @@ export async function listTunnelSessions(): Promise<NgrokTunnelSession[]> {
 /**
  * List all endpoints (HTTP/TCP/TLS edges)
  */
-export async function listEndpoints(): Promise<NgrokEndpoint[]> {
+export async function listEndpoints(apiKey: string): Promise<NgrokEndpoint[]> {
   try {
     const response = await fetch(`${NGROK_API_BASE}/endpoints`, {
-      headers: getHeaders(),
+      headers: getHeaders(apiKey),
       next: { revalidate: 30 },
     });
 
@@ -183,10 +182,10 @@ export async function listEndpoints(): Promise<NgrokEndpoint[]> {
 /**
  * Get tunnel session by ID
  */
-export async function getTunnelSession(id: string): Promise<NgrokTunnelSession | null> {
+export async function getTunnelSession(id: string, apiKey: string): Promise<NgrokTunnelSession | null> {
   try {
     const response = await fetch(`${NGROK_API_BASE}/tunnel_sessions/${id}`, {
-      headers: getHeaders(),
+      headers: getHeaders(apiKey),
       next: { revalidate: 10 },
     });
 
@@ -205,23 +204,23 @@ export async function getTunnelSession(id: string): Promise<NgrokTunnelSession |
 }
 
 /**
- * Check if ngrok API is configured
+ * Check if ngrok API key is valid (not empty)
  */
-export function isNgrokConfigured(): boolean {
-  return !!API_KEY && API_KEY.length > 0;
+export function isNgrokKeyValid(apiKey: string | null | undefined): boolean {
+  return !!apiKey && apiKey.length > 0;
 }
 
 /**
  * Test ngrok API connection
  */
-export async function testNgrokConnection(): Promise<{ success: boolean; error?: string }> {
+export async function testNgrokConnection(apiKey: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!isNgrokConfigured()) {
-      return { success: false, error: "NGROK_API_KEY not configured" };
+    if (!isNgrokKeyValid(apiKey)) {
+      return { success: false, error: "ngrok API key not provided" };
     }
 
     const response = await fetch(`${NGROK_API_BASE}/tunnel_sessions?limit=1`, {
-      headers: getHeaders(),
+      headers: getHeaders(apiKey),
     });
 
     if (!response.ok) {
