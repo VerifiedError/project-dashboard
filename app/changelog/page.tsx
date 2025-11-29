@@ -28,59 +28,94 @@ import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 export const dynamic = 'force-dynamic';
 
 export default async function ChangelogPage() {
-  const { success, entries, total } = await getChangelogEntries({ limit: 500 });
-  const timezoneResult = await getTimezone();
+  try {
+    const { success, entries, total } = await getChangelogEntries({ limit: 500 });
+    const timezoneResult = await getTimezone();
 
-  // Ensure entries is always an array, even during build time
-  const safeEntries = Array.isArray(entries) ? entries : [];
-  // Ensure timezone is always defined with a fallback
-  const timezone = timezoneResult.timezone || "America/Chicago";
+    // Ensure entries is always an array, even during build time
+    const safeEntries = Array.isArray(entries) ? entries : [];
+    // Ensure timezone is always defined with a fallback
+    const timezone = timezoneResult.timezone || "America/Chicago";
 
-  if (!success) {
+    if (!success) {
+      return (
+        <div className="container mx-auto p-4 md:p-8">
+          <h1 className="text-3xl font-bold mb-6">Changelog</h1>
+          <Card>
+            <CardHeader>
+              <CardTitle>Error Loading Changelog</CardTitle>
+              <CardDescription>Failed to load changelog entries</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="container mx-auto p-4 md:p-8 max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary-600 bg-clip-text text-transparent">
+            Changelog
+          </h1>
+          <p className="text-muted-foreground">
+            Complete history of all changes to the DevOps Dashboard
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Total entries: {total}
+          </p>
+        </div>
+
+        {safeEntries.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-muted-foreground">No changelog entries yet</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {safeEntries.map((entry, index) => {
+              try {
+                return <ChangelogEntry key={entry.id} entry={entry} timezone={timezone} />;
+              } catch (err) {
+                console.error(`Error rendering changelog entry ${entry.id} at index ${index}:`, err);
+                return (
+                  <Card key={entry.id} className="border-red-500">
+                    <CardContent className="p-4">
+                      <p className="text-red-600 text-sm">
+                        Error rendering entry {entry.refNumber}: {err instanceof Error ? err.message : String(err)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              }
+            })}
+          </div>
+        )}
+
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          <p>All changes are automatically tracked and logged</p>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    console.error("Changelog page error:", error);
     return (
       <div className="container mx-auto p-4 md:p-8">
         <h1 className="text-3xl font-bold mb-6">Changelog</h1>
-        <Card>
+        <Card className="border-red-500">
           <CardHeader>
-            <CardTitle>Error Loading Changelog</CardTitle>
-            <CardDescription>Failed to load changelog entries</CardDescription>
+            <CardTitle>Error</CardTitle>
+            <CardDescription>
+              An unexpected error occurred while loading the changelog page
+            </CardDescription>
           </CardHeader>
+          <CardContent>
+            <pre className="text-xs bg-muted p-4 rounded overflow-auto">
+              {error instanceof Error ? error.message : String(error)}
+            </pre>
+          </CardContent>
         </Card>
       </div>
     );
   }
-
-  return (
-    <div className="container mx-auto p-4 md:p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-primary-600 bg-clip-text text-transparent">
-          Changelog
-        </h1>
-        <p className="text-muted-foreground">
-          Complete history of all changes to the DevOps Dashboard
-        </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Total entries: {total}
-        </p>
-      </div>
-
-      {safeEntries.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground">No changelog entries yet</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {safeEntries.map((entry) => (
-            <ChangelogEntry key={entry.id} entry={entry} timezone={timezone} />
-          ))}
-        </div>
-      )}
-
-      <div className="mt-8 text-center text-sm text-muted-foreground">
-        <p>All changes are automatically tracked and logged</p>
-      </div>
-    </div>
-  );
 }
