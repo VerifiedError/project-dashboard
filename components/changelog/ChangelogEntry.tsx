@@ -58,8 +58,11 @@ export function ChangelogEntry({ entry, timezone = DEFAULT_TIMEZONE }: Changelog
     ? (entry.fileChanges as { ref: string; path: string }[])
     : [];
 
+  // Ensure createdAt is a Date object (Next.js serialization can turn it into a string)
+  const createdAt = typeof entry.createdAt === 'string' ? new Date(entry.createdAt) : entry.createdAt;
+
   // Format date with timezone
-  const dateInfo = formatChangelogDate(entry.createdAt, timezone);
+  const dateInfo = formatChangelogDate(createdAt, timezone);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -128,7 +131,7 @@ export function ChangelogEntry({ entry, timezone = DEFAULT_TIMEZONE }: Changelog
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" />
-            <time dateTime={entry.createdAt.toISOString()} title={dateInfo.full}>
+            <time dateTime={createdAt.toISOString()} title={dateInfo.full}>
               {dateInfo.relative} ({dateInfo.timezone})
             </time>
           </div>
