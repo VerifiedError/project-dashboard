@@ -126,8 +126,10 @@ export async function saveApiKey(
 export async function getApiKey(
   service: ServiceType
 ): Promise<{ success: boolean; keyValue?: string; error?: string; debugRefId?: string }> {
+  let userId: string | null = null;
+
   try {
-    const userId = await getCurrentUserId();
+    userId = await getCurrentUserId();
 
     if (!userId) {
       return {
