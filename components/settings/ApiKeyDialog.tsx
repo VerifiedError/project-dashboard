@@ -81,9 +81,7 @@ export function ApiKeyDialog({
     setIsSubmitting(true);
 
     try {
-      // TODO: Get userId from auth context once authentication is implemented
-      const userId = "temp-user-id"; // This will be replaced with actual auth
-      const result = await saveApiKey(service, apiKey, userId);
+      const result = await saveApiKey(service, apiKey);
 
       if (result.success) {
         toast({
@@ -151,9 +149,7 @@ export function ApiKeyDialog({
     setIsLoadingKey(true);
 
     try {
-      // TODO: Get userId from auth context once authentication is implemented
-      const userId = "temp-user-id"; // This will be replaced with actual auth
-      const result = await getApiKey(service, userId);
+      const result = await getApiKey(service);
 
       if (result.success && result.keyValue) {
         setApiKey(result.keyValue);
@@ -261,6 +257,24 @@ export function ApiKeyDialog({
             <p className="text-xs text-muted-foreground">
               Your API key will be encrypted and stored securely.
             </p>
+            {service === "GITHUB" && (
+              <div className="mt-2 p-3 bg-muted/50 rounded-md">
+                <p className="text-xs font-medium mb-1">GitHub Token Guide:</p>
+                <p className="text-xs text-muted-foreground">
+                  Create a fine-grained personal access token at{" "}
+                  <a
+                    href="https://github.com/settings/tokens?type=beta"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline hover:no-underline"
+                  >
+                    github.com/settings/tokens
+                  </a>
+                  . Grant permissions: <code className="text-xs bg-background px-1 rounded">repo</code> (for repository access),{" "}
+                  <code className="text-xs bg-background px-1 rounded">read:org</code> (for organization data).
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

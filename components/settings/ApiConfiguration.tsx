@@ -26,7 +26,7 @@ import { ServiceType } from "@prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Key, Globe, TrendingUp, Database, Zap, Settings2 } from "lucide-react";
+import { Key, Globe, TrendingUp, Database, Zap, Settings2, Github } from "lucide-react";
 import { ApiKeyDialog } from "./ApiKeyDialog";
 import { getApiKeys } from "@/lib/actions/apiKeys";
 
@@ -67,6 +67,13 @@ const services: Service[] = [
     color: "text-purple-600",
     description: "Redis & Kafka",
   },
+  {
+    type: ServiceType.GITHUB,
+    name: "GitHub",
+    icon: Github,
+    color: "text-gray-900",
+    description: "Fine-grained personal access token",
+  },
 ];
 
 export function ApiConfiguration() {
@@ -83,10 +90,7 @@ export function ApiConfiguration() {
   const loadConfiguredKeys = async () => {
     setIsLoading(true);
     try {
-      // TODO: Get userId from auth context once authentication is implemented
-      // For now, hardcode the admin user ID from seed
-      const userId = "temp-user-id"; // This will be replaced with actual auth
-      const result = await getApiKeys(userId);
+      const result = await getApiKeys();
       if (result.success && result.keys) {
         const keys = new Set(result.keys.map((key) => key.service));
         setConfiguredKeys(keys);

@@ -34,8 +34,7 @@ import { ServiceType, TunnelStatus } from "@prisma/client";
  * Helper function to get ngrok API key from database
  */
 async function getNgrokApiKey(): Promise<string | null> {
-  const userId = "temp-user-id"; // TODO: Get from auth context
-  const result = await getApiKey(ServiceType.NGROK, userId);
+  const result = await getApiKey(ServiceType.NGROK);
 
   if (result.success && result.keyValue) {
     return result.keyValue;

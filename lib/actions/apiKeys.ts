@@ -28,6 +28,7 @@ import { encrypt, decrypt } from "@/lib/utils/encryption";
 import { ServiceType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { debugLogger } from "@/lib/utils/debug-logger";
+import { getCurrentUserId } from "@/lib/utils/session";
 
 export interface ApiKeyResult {
   success: boolean;
@@ -49,25 +50,25 @@ export interface ApiKeysListResult {
  * Save or update an API key for a service
  * @param service - The service type (NGROK, VERCEL, NEON, UPSTASH)
  * @param keyValue - The API key value (will be encrypted)
- * @param userId - User ID (required)
  */
 export async function saveApiKey(
   service: ServiceType,
-  keyValue: string,
-  userId: string
+  keyValue: string
 ): Promise<ApiKeyResult> {
   try {
-    if (!keyValue || keyValue.trim().length === 0) {
-      return {
-        success: false,
-        error: "API key cannot be empty",
-      };
-    }
+    const userId = await getCurrentUserId();
 
     if (!userId) {
       return {
         success: false,
-        error: "User ID is required",
+        error: "You must be logged in to save API keys",
+      };
+    }
+
+    if (!keyValue || keyValue.trim().length === 0) {
+      return {
+        success: false,
+        error: "API key cannot be empty",
       };
     }
 
@@ -121,17 +122,17 @@ export async function saveApiKey(
 /**
  * Get an API key for a service (decrypted)
  * @param service - The service type
- * @param userId - User ID (required)
  */
 export async function getApiKey(
-  service: ServiceType,
-  userId: string
+  service: ServiceType
 ): Promise<{ success: boolean; keyValue?: string; error?: string; debugRefId?: string }> {
   try {
+    const userId = await getCurrentUserId();
+
     if (!userId) {
       return {
         success: false,
-        error: "User ID is required",
+        error: "You must be logged in to view API keys",
       };
     }
 
@@ -194,15 +195,16 @@ export async function getApiKey(
 }
 
 /**
- * Get all API keys for a user (without decrypted values)
- * @param userId - User ID (required)
+ * Get all API keys for the current user (without decrypted values)
  */
-export async function getApiKeys(userId: string): Promise<ApiKeysListResult> {
+export async function getApiKeys(): Promise<ApiKeysListResult> {
   try {
+    const userId = await getCurrentUserId();
+
     if (!userId) {
       return {
         success: false,
-        error: "User ID is required",
+        error: "You must be logged in to view API keys",
       };
     }
 
@@ -237,17 +239,17 @@ export async function getApiKeys(userId: string): Promise<ApiKeysListResult> {
 /**
  * Delete an API key for a service
  * @param service - The service type
- * @param userId - User ID (required)
  */
 export async function deleteApiKey(
-  service: ServiceType,
-  userId: string
+  service: ServiceType
 ): Promise<ApiKeyResult> {
   try {
+    const userId = await getCurrentUserId();
+
     if (!userId) {
       return {
         success: false,
-        error: "User ID is required",
+        error: "You must be logged in to delete API keys",
       };
     }
 
@@ -288,13 +290,13 @@ export async function deleteApiKey(
 /**
  * Test if an API key is configured for a service
  * @param service - The service type
- * @param userId - User ID (required)
  */
 export async function hasApiKey(
-  service: ServiceType,
-  userId: string
+  service: ServiceType
 ): Promise<boolean> {
   try {
+    const userId = await getCurrentUserId();
+
     if (!userId) {
       return false;
     }
