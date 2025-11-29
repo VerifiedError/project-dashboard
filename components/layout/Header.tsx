@@ -80,21 +80,21 @@ export function Header() {
           })}
         </nav>
 
+        {/* Version Badge - Always visible */}
+        <div className="ml-auto flex items-center gap-2">
+          <VersionBadge />
+        </div>
+
         {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="icon"
-          className="ml-auto md:hidden"
+          className="ml-2 md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </Button>
-
-        {/* Right side actions */}
-        <div className="hidden md:flex md:items-center md:gap-2">
-          <VersionBadge />
-        </div>
       </div>
 
       {/* Mobile Navigation */}
@@ -122,6 +122,10 @@ export function Header() {
                 </Link>
               );
             })}
+            <div className="pt-4 border-t mt-4 flex items-center justify-between px-3">
+              <span className="text-xs text-muted-foreground">Version</span>
+              <VersionBadge />
+            </div>
           </nav>
         </div>
       )}
