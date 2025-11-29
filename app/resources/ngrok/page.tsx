@@ -26,6 +26,7 @@ import { Globe, ExternalLink, AlertCircle, CheckCircle2, XCircle } from "lucide-
 import Link from "next/link";
 import { NgrokSyncButton } from "@/components/resources/NgrokSyncButton";
 import { formatRelativeTime } from "@/lib/utils/cn";
+import { DebugPanel } from "@/components/debug/DebugPanel";
 
 export default async function NgrokPage() {
   const [tunnelsResult, statsResult, statusResult] = await Promise.all([
@@ -223,6 +224,68 @@ export default async function NgrokPage() {
           ))}
         </div>
       )}
+
+      {/* Debug Panel */}
+      <div className="mt-8">
+        <DebugPanel
+          title="ngrok Resource Debug Log"
+          data={{
+            timestamp: new Date().toISOString(),
+            page: "/resources/ngrok",
+            status: {
+              configured: status.configured,
+              connected: status.connected,
+              apiKeyPresent: !!process.env.NGROK_API_KEY,
+            },
+            stats: {
+              total: stats.total,
+              active: stats.active,
+              inactive: stats.inactive,
+            },
+            tunnels: {
+              count: tunnels.length,
+              data: tunnels.map(t => ({
+                id: t.id,
+                ngrokId: t.ngrokId,
+                publicUrl: t.publicUrl,
+                protocol: t.protocol,
+                forwardingAddr: t.forwardingAddr,
+                status: t.status,
+                region: t.region,
+                connectionCount: t.connectionCount,
+                lastSyncedAt: t.lastSyncedAt?.toISOString(),
+                createdAt: t.createdAt?.toISOString(),
+                projectName: t.project?.name,
+              })),
+            },
+            apiResults: {
+              tunnelsResult: {
+                success: tunnelsResult.success,
+                error: tunnelsResult.error,
+                tunnelCount: tunnelsResult.tunnels?.length,
+              },
+              statsResult: {
+                success: statsResult.success,
+                error: statsResult.error,
+                stats: statsResult.stats,
+              },
+              statusResult: {
+                success: statusResult.success,
+                configured: statusResult.configured,
+                connected: statusResult.connected,
+                error: statusResult.error,
+              },
+            },
+            environment: {
+              nodeEnv: process.env.NODE_ENV,
+              vercelEnv: process.env.VERCEL_ENV,
+              hasNgrokKey: !!process.env.NGROK_API_KEY,
+              hasDbUrl: !!process.env.DATABASE_URL,
+              hasEncryptionKey: !!process.env.ENCRYPTION_KEY,
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }
