@@ -73,22 +73,18 @@ export default async function ChangelogPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {safeEntries.map((entry, index) => {
-              try {
-                return <ChangelogEntry key={entry.id} entry={entry} timezone={timezone} />;
-              } catch (err) {
-                console.error(`Error rendering changelog entry ${entry.id} at index ${index}:`, err);
-                return (
-                  <Card key={entry.id} className="border-red-500">
-                    <CardContent className="p-4">
-                      <p className="text-red-600 text-sm">
-                        Error rendering entry {entry.refNumber}: {err instanceof Error ? err.message : String(err)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              }
-            })}
+            {safeEntries.map((entry) => (
+              <Card key={entry.id}>
+                <CardContent className="p-4">
+                  <h3 className="font-bold">{entry.refNumber}: {entry.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-2">{entry.description}</p>
+                  <div className="mt-2 flex gap-2 text-xs">
+                    <span className="px-2 py-1 bg-muted rounded">{entry.category}</span>
+                    <span className="px-2 py-1 bg-muted rounded">{entry.severity}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 
