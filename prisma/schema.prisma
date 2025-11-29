@@ -278,3 +278,50 @@ model SystemSetting {
 
   @@index([key])
 }
+
+// Debug Logs - Comprehensive error and debug tracking
+model DebugLog {
+  id          String   @id @default(cuid())
+  refId       String   @unique // e.g., "DBG-20251128-A1B2C3"
+  timestamp   DateTime @default(now())
+  level       LogLevel
+  category    LogCategory
+  message     String   @db.Text
+  details     Json?    // Additional context and parameters
+  stack       String?  @db.Text // Error stack trace
+  userId      String?
+  component   String?  // Component/file where error occurred
+  action      String?  // Action being performed
+  file        String?  // File path
+  line        Int?     // Line number
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([refId])
+  @@index([level])
+  @@index([category])
+  @@index([timestamp(sort: Desc)])
+  @@index([userId])
+  @@index([resolved])
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  CRITICAL
+}
+
+enum LogCategory {
+  ENCRYPTION
+  API_KEY
+  DATABASE
+  API_INTEGRATION
+  AUTH
+  VALIDATION
+  SYSTEM
+  UI
+}

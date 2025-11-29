@@ -18,6 +18,7 @@
  */
 
 import crypto from "crypto";
+import { debugLogger } from "./debug-logger";
 
 // Algorithm for encryption
 const ALGORITHM = "aes-256-gcm";
@@ -31,10 +32,26 @@ function getEncryptionKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
 
   if (!key) {
-    console.warn(
-      "WARNING: ENCRYPTION_KEY not set in environment. Using temporary key. " +
-      "Generate one with: openssl rand -hex 32"
-    );
+    const warningMessage =
+      "ENCRYPTION_KEY not set in environment. Using temporary key. " +
+      "This will cause decryption failures across server restarts. " +
+      "Generate one with: openssl rand -hex 32";
+
+    console.warn("WARNING:", warningMessage);
+
+    // Log this critical configuration issue
+    debugLogger.critical("encryption", warningMessage, {
+      details: {
+        issue: "Missing ENCRYPTION_KEY environment variable",
+        impact: "Temporary keys are generated per session, causing decrypt failures",
+        solution: "Set ENCRYPTION_KEY in environment variables",
+      },
+      context: {
+        file: "lib/utils/encryption.ts",
+        action: "getEncryptionKey",
+      },
+    }).catch(console.error);
+
     // Generate a temporary key (will be different each time server restarts)
     return crypto.randomBytes(32);
   }
@@ -63,6 +80,21 @@ export function encrypt(text: string): string {
     return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
   } catch (error) {
     console.error("Encryption failed:", error);
+
+    // Log encryption failure with full context
+    debugLogger.error("encryption", "Failed to encrypt data", {
+      error: error instanceof Error ? error : new Error(String(error)),
+      details: {
+        algorithm: ALGORITHM,
+        textLength: text?.length || 0,
+        hasEncryptionKey: !!process.env.ENCRYPTION_KEY,
+      },
+      context: {
+        file: "lib/utils/encryption.ts",
+        action: "encrypt",
+      },
+    }).catch(console.error);
+
     throw new Error("Failed to encrypt data");
   }
 }
@@ -78,7 +110,25 @@ export function decrypt(encryptedText: string): string {
     const parts = encryptedText.split(":");
 
     if (parts.length !== 3) {
-      throw new Error("Invalid encrypted data format");
+      const formatError = new Error("Invalid encrypted data format");
+
+      // Log format validation error
+      debugLogger.error("encryption", "Decrypt failed: Invalid encrypted data format", {
+        error: formatError,
+        details: {
+          expectedParts: 3,
+          actualParts: parts.length,
+          encryptedTextLength: encryptedText?.length || 0,
+          hasEncryptionKey: !!process.env.ENCRYPTION_KEY,
+          preview: encryptedText.substring(0, 50) + "...",
+        },
+        context: {
+          file: "lib/utils/encryption.ts",
+          action: "decrypt",
+        },
+      }).catch(console.error);
+
+      throw formatError;
     }
 
     const iv = Buffer.from(parts[0], "hex");
@@ -94,6 +144,33 @@ export function decrypt(encryptedText: string): string {
     return decrypted;
   } catch (error) {
     console.error("Decryption failed:", error);
+
+    // Determine if this is an auth tag mismatch (key mismatch)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isAuthError = errorMessage.includes("auth") || errorMessage.includes("tag") || errorMessage.includes("Unsupported state");
+
+    // Log decryption failure with full context
+    debugLogger.error("encryption", isAuthError ? "Decrypt failed: Encryption key mismatch (auth tag verification failed)" : "Failed to decrypt data", {
+      error: error instanceof Error ? error : new Error(String(error)),
+      details: {
+        algorithm: ALGORITHM,
+        encryptedTextLength: encryptedText?.length || 0,
+        hasEncryptionKey: !!process.env.ENCRYPTION_KEY,
+        isAuthError,
+        likelyCause: isAuthError
+          ? "Data was encrypted with a different ENCRYPTION_KEY than the current one"
+          : "Unknown decryption error",
+        suggestedFix: isAuthError
+          ? "Ensure ENCRYPTION_KEY in production matches the key used to encrypt the data, or re-enter the API keys"
+          : "Check error details and stack trace",
+        encryptedDataPreview: encryptedText.substring(0, 50) + "...",
+      },
+      context: {
+        file: "lib/utils/encryption.ts",
+        action: "decrypt",
+      },
+    }).catch(console.error);
+
     throw new Error("Failed to decrypt data");
   }
 }

@@ -37,6 +37,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { saveApiKey, deleteApiKey, getApiKey } from "@/lib/actions/apiKeys";
 import { Loader2, Eye, EyeOff, Trash2, Download } from "lucide-react";
+import { DebugModal } from "@/components/shared/DebugModal";
+import { getDebugLog } from "@/lib/actions/debug";
+import type { DebugLog } from "@/lib/utils/debug-logger";
 
 interface ApiKeyDialogProps {
   isOpen: boolean;
@@ -60,6 +63,7 @@ export function ApiKeyDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingKey, setIsLoadingKey] = useState(false);
+  const [debugLog, setDebugLog] = useState<DebugLog | null>(null);
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -159,18 +163,45 @@ export function ApiKeyDialog({
           description: `${serviceName} API key loaded`,
         });
       } else {
+        // If there's a debug reference ID, load the debug log and show the modal
+        if (result.debugRefId) {
+          const debugResult = await getDebugLog(result.debugRefId);
+          if (debugResult.success && debugResult.log) {
+            setDebugLog({
+              id: debugResult.log.id,
+              refId: debugResult.log.refId,
+              timestamp: debugResult.log.timestamp,
+              level: debugResult.log.level.toLowerCase() as DebugLog["level"],
+              category: debugResult.log.category.toLowerCase().replace("_", "-") as DebugLog["category"],
+              message: debugResult.log.message,
+              details: debugResult.log.details,
+              stack: debugResult.log.stack,
+              userId: debugResult.log.userId,
+              context: {
+                component: debugResult.log.component,
+                action: debugResult.log.action,
+                file: debugResult.log.file,
+                line: debugResult.log.line,
+              },
+            });
+          }
+        }
+
         toast({
           title: "Error",
-          description: result.error || "Failed to load API key",
+          description: result.debugRefId
+            ? `${result.error || "Failed to load API key"} (Debug ID: ${result.debugRefId})`
+            : result.error || "Failed to load API key",
           variant: "destructive",
         });
       }
-    } catch {
+    } catch (error) {
       toast({
         title: "Error",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+      console.error("Unexpected error:", error);
     } finally {
       setIsLoadingKey(false);
     }
@@ -179,11 +210,18 @@ export function ApiKeyDialog({
   const handleClose = () => {
     setApiKey("");
     setShowKey(false);
+    setDebugLog(null);
     onClose();
   };
 
+  const handleViewDebugLog = (refId: string) => {
+    // Navigate to debug log viewer page
+    window.open(`/debug?refId=${refId}`, "_blank");
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Configure {serviceName} API Key</DialogTitle>
@@ -275,5 +313,14 @@ export function ApiKeyDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+      {/* Debug Modal */}
+      <DebugModal
+        isOpen={!!debugLog}
+        onClose={() => setDebugLog(null)}
+        debugLog={debugLog}
+        onViewFullLog={handleViewDebugLog}
+      />
+    </>
   );
 }

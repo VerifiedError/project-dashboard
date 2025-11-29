@@ -27,6 +27,7 @@ import { prisma } from "@/lib/utils/db";
 import { encrypt, decrypt } from "@/lib/utils/encryption";
 import { ServiceType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { debugLogger } from "@/lib/utils/debug-logger";
 
 export interface ApiKeyResult {
   success: boolean;
@@ -125,7 +126,7 @@ export async function saveApiKey(
 export async function getApiKey(
   service: ServiceType,
   userId: string
-): Promise<{ success: boolean; keyValue?: string; error?: string }> {
+): Promise<{ success: boolean; keyValue?: string; error?: string; debugRefId?: string }> {
   try {
     if (!userId) {
       return {
@@ -163,9 +164,31 @@ export async function getApiKey(
     };
   } catch (error) {
     console.error("Failed to get API key:", error);
+
+    // Log this error with comprehensive context
+    const debugLog = await debugLogger.error("api-key", "Failed to get/decrypt API key", {
+      error: error instanceof Error ? error : new Error(String(error)),
+      details: {
+        service,
+        userId,
+        hasEncryptionKey: !!process.env.ENCRYPTION_KEY,
+        errorType: error instanceof Error ? error.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+      },
+      context: {
+        component: "ApiKeyDialog",
+        action: "getApiKey (View Key button)",
+        file: "lib/actions/apiKeys.ts",
+      },
+    }).catch((logError) => {
+      console.error("Failed to log debug error:", logError);
+      return null;
+    });
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to get API key",
+      debugRefId: debugLog?.refId,
     };
   }
 }
