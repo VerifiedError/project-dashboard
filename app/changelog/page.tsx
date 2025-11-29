@@ -24,7 +24,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ChangelogEntry } from "@/components/changelog/ChangelogEntry";
 
 export default async function ChangelogPage() {
-  const { success, entries, total } = await getChangelogEntries({ limit: 100 });
+  const { success, entries, total } = await getChangelogEntries({ limit: 500 });
 
   if (!success || !entries) {
     return (
