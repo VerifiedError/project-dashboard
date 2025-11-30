@@ -99,7 +99,7 @@ export async function syncNeonProjects(): Promise<SyncResult> {
       const storageGB = mainBranch ? mainBranch.logical_size / (1024 * 1024 * 1024) : 0;
 
       // Determine status
-      let status = DatabaseStatus.ACTIVE;
+      let status: DatabaseStatus = DatabaseStatus.ACTIVE;
       if (mainBranch?.current_state === "init") {
         status = DatabaseStatus.ERROR;
       }
