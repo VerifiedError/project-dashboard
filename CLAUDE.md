@@ -8,6 +8,34 @@
 
 ---
 
+# ⚠️ CRITICAL REQUIREMENT - READ THIS FIRST ⚠️
+
+## MANDATORY VERSION & CHANGELOG WORKFLOW
+
+**EVERY SINGLE TIME YOU MAKE ANY CHANGE AND PUSH TO GITHUB, YOU MUST:**
+
+1. ✅ **Update `package.json` version** (line 3)
+   - MAJOR.MINOR.PATCH (e.g., 0.5.1)
+   - Bug fixes = PATCH increment (0.5.0 → 0.5.1)
+   - New features = MINOR increment (0.5.1 → 0.6.0)
+   - Breaking changes = MAJOR increment (0.5.1 → 1.0.0)
+
+2. ✅ **Create changelog entry in database**
+   - Create script: `scripts/add-changelog-XXX.ts`
+   - Run: `npx tsx scripts/add-changelog-XXX.ts`
+   - Include all file changes with FILE-REF numbers
+
+3. ✅ **Update this CLAUDE.md file**
+   - Update "Current Stats" section
+   - Update "Current Version"
+   - Add to "Version History" section below
+
+**❌ NEVER SKIP THIS WORKFLOW - IT IS MANDATORY FOR EVERY COMMIT TO GITHUB ❌**
+
+If you forget, the user will remind you, and you must immediately fix it by creating a new commit with the updated version and changelog.
+
+---
+
 ## 🎯 Development Progress
 
 ### ✅ Completed Phases
@@ -69,15 +97,15 @@
 - **Version**: 0.4.0
 
 ### 📊 Current Stats
-- **Total Files Created**: 65+ (including auth system)
-- **Changelog Entries**: 11 (CHG-001 through CHG-011) - ✅ Complete history seeded
-- **Git Commits**: 8+
-- **Lines of Code**: ~5,500+
+- **Total Files Created**: 70+ (including auth system, Vercel & Neon integrations)
+- **Changelog Entries**: 12 (CHG-001 through CHG-012) - ✅ Complete history tracked
+- **Git Commits**: 15+
+- **Lines of Code**: ~8,500+
 - **Database Tables**: 8 models (fully seeded)
-- **API Integrations**: 1/4 complete (ngrok ✅)
+- **API Integrations**: 3/4 complete (ngrok ✅, Vercel ✅, Neon ✅)
 - **Authentication**: ✅ Multi-user login system implemented
 - **Production Status**: ✅ Deployed to Vercel (dashboard.amikkelson.io)
-- **Current Version**: 0.4.0
+- **Current Version**: 0.5.1
 
 ### 🚀 Next Phases
 
@@ -153,13 +181,18 @@ The current version is always visible in the header (COMP-060) via the VersionBa
 - **MINOR** (0.X.0): New features, significant improvements, new integrations
 - **PATCH** (0.0.X): Bug fixes, minor improvements, documentation updates
 
-### Current Version: 0.4.0
-- **0.1.0**: Initial setup and Phase 1-5 completion
-- **0.2.0**: User authentication system, API key management, version display
-- **0.3.0**: Version badge component, timezone configuration
-- **0.3.1**: Placeholder pages for Vercel, Neon, Upstash resources (404 fix)
-- **0.3.2**: ENCRYPTION_KEY diagnostic and production environment fix
+### Version History
+
+**Current Version: 0.5.1**
+
+- **0.5.1**: TypeScript build error fix in Neon actions (CHG-012)
+- **0.5.0**: Complete Neon database integration & React hydration fix (CHG-011)
 - **0.4.0**: Complete authentication system with iron-session, login page, route protection middleware, multi-user API key configuration, debug panel with copy-to-clipboard, session management utilities
+- **0.3.2**: ENCRYPTION_KEY diagnostic and production environment fix
+- **0.3.1**: Placeholder pages for Vercel, Neon, Upstash resources (404 fix)
+- **0.3.0**: Version badge component, timezone configuration
+- **0.2.0**: User authentication system, API key management, version display
+- **0.1.0**: Initial setup and Phase 1-5 completion
 
 ---
 
