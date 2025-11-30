@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { syncNgrokTunnels } from "@/lib/actions/ngrok";
 import { syncVercelProjects } from "@/lib/actions/vercel";
+import { syncNeonProjects } from "@/lib/actions/neon";
 
 type SyncAction = "ngrok" | "vercel" | "neon" | "upstash";
 
@@ -76,14 +77,14 @@ export function SyncButton({
           break;
 
         case "neon":
-          // TODO: Implement Neon sync action
-          toast({
-            title: "Not implemented",
-            description: "Neon sync is not implemented yet",
-            variant: "destructive",
-          });
-          setIsSyncing(false);
-          return;
+          result = await syncNeonProjects();
+          if (result.success) {
+            toast({
+              title: "Sync complete",
+              description: result.message || `Synced ${result.synced} project${result.synced !== 1 ? 's' : ''}`,
+            });
+          }
+          break;
 
         case "upstash":
           // TODO: Implement Upstash sync action
